@@ -11,18 +11,41 @@ import UIKit
 class ViewController: UIViewController {
 
     let speechService = SpeechService(locale: Locale(identifier: "ru-RU"))!
+    let colleagueService = ColleagueService()
+    
+    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var recordButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .green
         speechService.requestAuthorization()
-        speechService.start { results in
+    }
+    
+    // MARK: - Actions
+    
+    @IBAction func recordButtonAction(_ sender: Any) {
+        recordButton.isSelected = !recordButton.isSelected
+        if recordButton.isSelected {
+            startRecording()
+        }
+        else {
+            stopRecording()
+        }
+    }
+    
+    func startRecording() {
+        speechService.start { [weak self] results in
             switch results {
             case .success(let result):
+                self?.imageView.image = self?.colleagueService.colleagueImage(forTranscription: result.bestTranscription)
                 print(result.bestTranscription.formattedString)
             case .error(let error):
                 print(error)
             }
         }
+    }
+    
+    func stopRecording() {
+        speechService.stop()
     }
 }

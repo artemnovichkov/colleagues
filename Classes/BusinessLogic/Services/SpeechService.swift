@@ -12,6 +12,7 @@ final class SpeechService: NSObject {
     
     private let recognizer: SFSpeechRecognizer
     private let audioEngine = AVAudioEngine()
+    private var request: SFSpeechAudioBufferRecognitionRequest?
     
     init?(locale: Locale) {
         if let recognizer = SFSpeechRecognizer(locale: locale) {
@@ -51,15 +52,15 @@ final class SpeechService: NSObject {
         }
         
         let request = SFSpeechAudioBufferRecognitionRequest()
-        
         recognizer.recognitionTask(with: request) { result, error in
-            if let result = result {
+            if let result = result, result.isFinal {
                 resultHandler(.success(result))
             }
             if let error = error {
                 resultHandler(.error(error))
             }
         }
+        self.request = request
         
         guard let inputNode = audioEngine.inputNode else { fatalError("Empty Input node") }
         let recordFormat = inputNode.outputFormat(forBus: 0)
@@ -74,7 +75,12 @@ final class SpeechService: NSObject {
         catch {
             resultHandler(.error(error))
         }
-        
+    }
+    
+    func stop() {
+        request?.endAudio()
+        audioEngine.stop()
+        audioEngine.inputNode?.removeTap(onBus: 0)
     }
 }
 
