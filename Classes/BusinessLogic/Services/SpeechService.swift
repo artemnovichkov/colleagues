@@ -61,10 +61,9 @@ final class SpeechService: NSObject {
             }
         }
         self.request = request
-        
-        guard let inputNode = audioEngine.inputNode else { fatalError("Empty Input node") }
-        let recordFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordFormat) { buffer, _ in
+
+        let recordFormat = audioEngine.inputNode.outputFormat(forBus: 0)
+        audioEngine.inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordFormat) { buffer, _ in
             request.append(buffer)
         }
         
@@ -80,7 +79,7 @@ final class SpeechService: NSObject {
     func stop() {
         request?.endAudio()
         audioEngine.stop()
-        audioEngine.inputNode?.removeTap(onBus: 0)
+        audioEngine.inputNode.removeTap(onBus: 0)
     }
 }
 
